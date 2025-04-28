@@ -50,6 +50,7 @@ fn csv_cruncher(_py: Python<'_>, m: Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;
