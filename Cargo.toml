@@ -6,7 +6,6 @@ description = "A blazing-fast CSV processor with Python bindings, because pandas
 license = "MIT"
 
 [lib]
-name = "csv_cruncher"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
