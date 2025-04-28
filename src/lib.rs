@@ -1,72 +1,71 @@
+use polars::prelude::*;
 use pyo3::prelude::*;
-use pyo3::types::PyModule;
-use pyo3::Bound;
+use pyo3::wrap_pyfunction;
+use serde_json;
 
-/// A Python class representing the summary (sum and mean) of a list of numbers.
-#[pyclass]
-#[derive(Debug, Clone)]
-pub struct Summary {
-    #[pyo3(get)]
-    pub sum: f64,
-    #[pyo3(get)]
-    pub mean: f64,
-}
-
-#[pymethods]
-impl Summary {
-    fn __repr__(&self) -> PyResult<String> {
-        Ok(format!("<Summary sum={}, mean={}>", self.sum, self.mean))
-    }
-}
-
-/// Summarizes a list of numbers.
-/// 
+/// Processes a CSV file, computing sum, mean, and max of the 'value' column.
+///
 /// # Arguments
-/// * `numbers` - A vector of f64 values.
-/// 
+/// * `path` - Path to the CSV file.
+///
 /// # Returns
-/// A `Summary` object with `sum` and `mean` attributes.
-/// 
+/// A JSON string with sum, mean, and max.
+///
 /// # Example
 /// ```
-/// let numbers = vec![1.0, 2.0, 3.0];
-/// let summary = summarize(numbers);
-/// assert_eq!(summary.sum, 6.0);
-/// assert_eq!(summary.mean, 2.0);
+/// let result = crunch_csv("data.csv");
+/// // Returns "{\"sum\":10.0,\"mean\":2.5,\"max\":4.0}"
 /// ```
 #[pyfunction]
-pub fn summarize(numbers: Vec<f64>) -> Summary {
-    let sum: f64 = numbers.iter().sum();
-    let mean = if numbers.is_empty() { 0.0 } else { sum / numbers.len() as f64 };
-    Summary { sum, mean }
+fn crunch_csv(path: String) -> PyResult<String> {
+    let df = LazyCsvReader::new(path)
+        .finish()
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?
+        .collect()
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+
+    let values = df
+        .column("value")
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?
+        .f64()
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+
+    let sum: f64 = values.sum().unwrap_or(0.0);
+    let count = df.height() as f64;
+    let mean = if count > 0.0 { sum / count } else { 0.0 };
+    let max = values.max().unwrap_or(0.0);
+
+    let result = serde_json::json!({
+        "sum": sum,
+        "mean": mean,
+        "max": max
+    });
+
+    Ok(result.to_string())
 }
 
 #[pymodule]
 fn csv_cruncher(_py: Python<'_>, m: Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<Summary>()?;
-    m.add_function(wrap_pyfunction!(summarize, &m)?)?;
+    m.add_function(wrap_pyfunction!(crunch_csv, &m)?)?;
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs::File;
+    use std::io::Write;
+
     #[test]
-    fn test_summarize_normal_case() {
-        let summary = summarize(vec![1.0, 2.0, 3.0]);
-        assert_eq!(summary.sum, 6.0);
-        assert_eq!(summary.mean, 2.0);
-    }
-    #[test]
-    fn test_summarize_empty_vector() {
-        let summary = summarize(vec![]);
-        assert_eq!(summary.sum, 0.0);
-        assert_eq!(summary.mean, 0.0);
-    }
-    #[test]
-    fn test_summarize_negative_numbers() {
-        let summary = summarize(vec![-1.0, -2.0, -3.0]);
-        assert_eq!(summary.sum, -6.0);
-        assert_eq!(summary.mean, -2.0);
+    fn test_crunch_csv() -> PyResult<()> {
+        let csv_content = "value\n1.0\n2.0\n3.0\n";
+        let path = "test.csv";
+        File::create(path)?.write_all(csv_content.as_bytes())?;
+        let result = json::parse(&crunch_csv(path.to_string())?)?;
+        assert_eq!(result["sum"].as_f64().unwrap(), 6.0);
+        assert_eq!(result["mean"].as_f64().unwrap(), 2.0);
+        assert_eq!(result["max"].as_f64().unwrap(), 3.0);
+        std::fs::remove_file(path)?;
+        Ok(())
     }
 }
