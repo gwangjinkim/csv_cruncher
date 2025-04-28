@@ -19,25 +19,23 @@ impl Summary {
     }
 }
 
-/// Summarizes a list of numbers by computing their sum and mean.
+/// Summarizes a list of numbers.
+/// 
+/// # Arguments
+/// * `numbers` - A vector of f64 values.
+/// 
+/// # Returns
+/// A `Summary` object with `sum` and `mean` attributes.
+/// 
+/// # Example
+/// ```
+/// let numbers = vec![1.0, 2.0, 3.0];
+/// let summary = summarize(numbers);
+/// assert_eq!(summary.sum, 6.0);
+/// assert_eq!(summary.mean, 2.0);
+/// ```
 #[pyfunction]
 pub fn summarize(numbers: Vec<f64>) -> Summary {
-    /// Summarizes a list of numbers.
-    /// 
-    /// # Arguments
-    /// * `numbers` - A vector of f64 values.
-    /// 
-    /// # Returns
-    /// 
-    /// A `Summary` object with `sum` and `mean` attributes.
-    ///
-    /// # Example
-    /// ```
-    /// let numbers = vec![1.0, 2.0, 3.0];
-    /// let summary = summarize(numbers);
-    /// assert_eq!(summary.sum, 6.0);
-    /// assert_eq!(summary.mean, 2.0);
-    /// ```
     let sum: f64 = numbers.iter().sum();
     let mean = if numbers.is_empty() { 0.0 } else { sum / numbers.len() as f64 };
     Summary { sum, mean }
