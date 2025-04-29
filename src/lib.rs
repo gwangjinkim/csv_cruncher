@@ -1,11 +1,7 @@
 use polars::prelude::*;
 use serde_json;
-
-#[cfg(not(test))]
 use pyo3::prelude::*;
-#[cfg(not(test))]
 use pyo3::{wrap_pyfunction, Python, PyResult, Bound};
-#[cfg(not(test))]
 use pyo3::prelude::PyModule;
 
 
@@ -22,7 +18,6 @@ use pyo3::prelude::PyModule;
 /// let result = crunch_csv("data.csv");
 /// // Returns "{\"sum\":10.0,\"mean\":2.5,\"max\":4.0}"
 /// ```
-#[cfg(not(test))]
 #[pyfunction]
 fn crunch_csv(path: String) -> PyResult<String> {
     let df = LazyCsvReader::new(path)
@@ -51,13 +46,11 @@ fn crunch_csv(path: String) -> PyResult<String> {
     Ok(result.to_string())
 }
 
-#[cfg(not(test))]
 #[pymodule]
 fn csv_cruncher(_py: Python<'_>, m: Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(crunch_csv, &m)?)?;
     Ok(())
 }
-
 
 #[cfg(test)]
 mod tests {
