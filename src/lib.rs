@@ -56,15 +56,14 @@ mod tests {
     use super::*;
     use std::fs::File;
     use std::io::Write;
-    use serde_json::from_str;
+    use serde_json::{from_str, Value};
 
     #[test]
-    fn test_crunch_csv() -> PyResult<()> {
+    fn test_crunch_csv() -> anyhow::Result<()> {
         let csv_content = "value\n1.0\n2.0\n3.0\n";
         let path = "test.csv";
         File::create(path)?.write_all(csv_content.as_bytes())?;
-        let result: serde_json::Value = from_str(&crunch_csv(path.to_string())?)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("JSON parse error: {}", e)))?;
+        let result: Value = from_str(&crunch_csv(path.to_string())?)?;
         assert_eq!(result["sum"].as_f64().unwrap(), 6.0);
         assert_eq!(result["mean"].as_f64().unwrap(), 2.0);
         assert_eq!(result["max"].as_f64().unwrap(), 3.0);
