@@ -9,17 +9,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
-steps:
-    - uses: actions/checkout@v3
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
-    - name: Build
-      run: cargo build --verbose
-    - name: Run Tests
-      run: cargo test --verbose
-    - name: Check Formatting
-      run: cargo fmt -- --check
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - name: Build
+        run: cargo build --verbose
+      - name: Run Tests
+        run: cargo test --verbose
+      - name: Check Formatting
+        run: cargo fmt -- --check
