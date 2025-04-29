@@ -3,9 +3,10 @@ use serde_json;
 
 #[cfg(not(test))]
 use pyo3::prelude::*;
-
 #[cfg(not(test))]
-use pyo3::wrap_pyfunction;
+use pyo3::{wrap_pyfunction, Python, PyResult, Bound};
+#[cfg(not(test))]
+use pyo3::prelude::PyModule;
 
 
 /// Processes a CSV file, computing sum, mean, and max of the 'value' column.
@@ -21,7 +22,8 @@ use pyo3::wrap_pyfunction;
 /// let result = crunch_csv("data.csv");
 /// // Returns "{\"sum\":10.0,\"mean\":2.5,\"max\":4.0}"
 /// ```
-#[cfg_attr(not(test), pyfunction)]
+#[cfg(not(test))]
+#[pyfunction]
 fn crunch_csv(path: String) -> PyResult<String> {
     let df = LazyCsvReader::new(path)
         .finish()
@@ -49,7 +51,8 @@ fn crunch_csv(path: String) -> PyResult<String> {
     Ok(result.to_string())
 }
 
-#[cfg_attr(not(test), pymodule)]
+#[cfg(not(test))]
+#[pymodule]
 fn csv_cruncher(_py: Python<'_>, m: Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(crunch_csv, &m)?)?;
     Ok(())
