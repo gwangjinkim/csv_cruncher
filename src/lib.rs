@@ -1,9 +1,8 @@
 use polars::prelude::*;
-use serde_json;
-use pyo3::prelude::*;
-use pyo3::{wrap_pyfunction, Python, PyResult, Bound};
 use pyo3::prelude::PyModule;
-
+use pyo3::prelude::*;
+use pyo3::{wrap_pyfunction, Bound, PyResult, Python};
+use serde_json;
 
 /// Processes a CSV file, computing sum, mean, and max of the 'value' column.
 ///
@@ -55,9 +54,9 @@ fn csv_cruncher(_py: Python<'_>, m: Bound<'_, PyModule>) -> PyResult<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::{from_str, Value};
     use std::fs::File;
     use std::io::Write;
-    use serde_json::{from_str, Value};
 
     #[test]
     fn test_crunch_csv() -> anyhow::Result<()> {

@@ -13,8 +13,8 @@ struct Args {
 
 fn crunch_csv<P: AsRef<Path>>(path: P) -> anyhow::Result<(f64, f64, f64)> {
     let df = LazyCsvReader::new(path) // no ? here
-        .finish()?    // finish() returns a LazyFrame
-        .collect()?;  // collect() turns it into a real DataFrame
+        .finish()? // finish() returns a LazyFrame
+        .collect()?; // collect() turns it into a real DataFrame
 
     let values = df.column("value")?.f64()?; // now works
     let sum: f64 = values.sum().unwrap_or(0.0);
