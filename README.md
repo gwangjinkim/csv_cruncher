@@ -1,6 +1,8 @@
 # CSV Cruncher
 
 A fast CSV processor with Python bindings. Beats pandas at its own game.
+(Sounds nice but this is actually just a test package to demonstrate how to use PO3
+to package Rust function into Python packages which run Rust under the hood).
 
 ## Install
 ```bash
